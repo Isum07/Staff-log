@@ -246,8 +246,8 @@ function renderLeaveRequests() {
                 <td>
                     ${request.status === 'pending' ? `
                         <div class="action-buttons">
-                            <button class="btn btn-success btn-sm" onclick="reviewLeave(${request.id}, 'approve')">✅ Approve</button>
-                            <button class="btn btn-danger btn-sm" onclick="reviewLeave(${request.id}, 'reject')">❌ Reject</button>
+                            <button class="btn btn-success btn-sm btn-no-arrow" onclick="reviewLeave(${request.id}, 'approve')">Approve</button>
+                            <button class="btn btn-danger btn-sm btn-no-arrow" onclick="reviewLeave(${request.id}, 'reject')">Reject</button>
                         </div>
                     ` : `
                         <span style="color: var(--text-secondary); font-size: 12px; font-weight: 600;">
