@@ -10,7 +10,7 @@
     <nav class="navbar">
         <div class="nav-container">
         <div class="nav-brand">
-            <h2>📋 Leave Management System</h2>
+            <h2>🍃 Leave Management System</h2>
         </div>
         <div class="nav-user">
             <span id="userName"></span>
@@ -23,7 +23,7 @@
     <div class="container">
         <div class="dashboard-header">
             <div>
-                <h1>📊 Dashboard</h1>
+                <h1>🌿 Dashboard</h1>
                 <p style="color: var(--text-secondary); margin-top: 8px; font-size: 14px;">Manage your leave requests efficiently</p>
             </div>
             <button id="applyLeaveBtn" class="btn btn-primary" style="display: none;">➕ Apply for Leave</button>
@@ -70,11 +70,39 @@
             </div>
         </div>
 
+        <!-- Search and Filter Section -->
+        <div class="card search-filter-card">
+            <div class="card-body">
+                <div class="search-filter-container">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="🔍 Search by reason, teacher name, or ID..." class="search-input">
+                    </div>
+                    <div class="filter-group">
+                        <select id="filterStatus" class="filter-select">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                        <select id="filterLeaveType" class="filter-select">
+                            <option value="">All Leave Types</option>
+                            <option value="medical">Medical Leave</option>
+                            <option value="casual">Casual Leave</option>
+                        </select>
+                        <button id="clearFiltersBtn" class="btn btn-filter-clear">Clear Filters</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Leave Requests Table -->
         <div class="card">
             <div class="card-header">
-                <h2 id="tableTitle">📋 Leave Requests</h2>
-                <button id="refreshBtn" class="btn btn-secondary btn-sm">🔄 Refresh</button>
+                <h2 id="tableTitle">🍃 Leave Requests</h2>
+                <div class="header-actions">
+                    <span id="resultsCount" class="results-count"></span>
+                    <button id="refreshBtn" class="btn btn-secondary btn-sm">🔄 Refresh</button>
+                </div>
             </div>
             <div class="card-body">
                 <div id="loadingIndicator" class="loading">Loading...</div>
