@@ -1,5 +1,6 @@
 let currentUser = null;
 let leaveRequests = [];
+let filteredRequests = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     checkAuth();
@@ -88,6 +89,28 @@ function setupEventListeners() {
     if (refreshBtn) {
         refreshBtn.addEventListener('click', loadLeaveRequests);
     }
+
+    // Search input
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearchAndFilter);
+    }
+
+    // Filter selects
+    const filterStatus = document.getElementById('filterStatus');
+    const filterLeaveType = document.getElementById('filterLeaveType');
+    if (filterStatus) {
+        filterStatus.addEventListener('change', handleSearchAndFilter);
+    }
+    if (filterLeaveType) {
+        filterLeaveType.addEventListener('change', handleSearchAndFilter);
+    }
+
+    // Clear filters button
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', clearFilters);
+    }
 }
 
 function loadUserInfo() {
@@ -129,8 +152,8 @@ async function loadLeaveRequests() {
         if (leaveRequests.length === 0) {
             noDataMessage.style.display = 'block';
         } else {
-            table.style.display = 'table';
-            renderLeaveRequests();
+            filteredRequests = [...leaveRequests];
+            applyFilters();
         }
     } catch (error) {
         console.error('Error loading leave requests:', error);
@@ -138,11 +161,73 @@ async function loadLeaveRequests() {
     }
 }
 
+function handleSearchAndFilter() {
+    applyFilters();
+}
+
+function applyFilters() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    const statusFilter = document.getElementById('filterStatus').value;
+    const leaveTypeFilter = document.getElementById('filterLeaveType').value;
+
+    filteredRequests = leaveRequests.filter(request => {
+        // Search filter
+        const matchesSearch = !searchTerm || 
+            request.id.toString().includes(searchTerm) ||
+            (request.full_name || request.username || '').toLowerCase().includes(searchTerm) ||
+            (request.reason || '').toLowerCase().includes(searchTerm);
+
+        // Status filter
+        const matchesStatus = !statusFilter || request.status === statusFilter;
+
+        // Leave type filter
+        const matchesLeaveType = !leaveTypeFilter || request.leave_type === leaveTypeFilter;
+
+        return matchesSearch && matchesStatus && matchesLeaveType;
+    });
+
+    renderLeaveRequests();
+    updateResultsCount();
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterLeaveType').value = '';
+    applyFilters();
+}
+
+function updateResultsCount() {
+    const resultsCount = document.getElementById('resultsCount');
+    if (resultsCount) {
+        const total = leaveRequests.length;
+        const filtered = filteredRequests.length;
+        if (filtered === total) {
+            resultsCount.textContent = `${total} request${total !== 1 ? 's' : ''}`;
+        } else {
+            resultsCount.textContent = `${filtered} of ${total} request${total !== 1 ? 's' : ''}`;
+        }
+    }
+}
+
 function renderLeaveRequests() {
     const tableBody = document.getElementById('leaveTableBody');
+    const table = document.getElementById('leaveTable');
+    const noDataMessage = document.getElementById('noDataMessage');
+    
     tableBody.innerHTML = '';
 
-    leaveRequests.forEach(request => {
+    if (filteredRequests.length === 0) {
+        table.style.display = 'none';
+        noDataMessage.style.display = 'block';
+        noDataMessage.textContent = leaveRequests.length === 0 
+            ? 'No leave requests found' 
+            : 'No leave requests match your search/filter criteria';
+    } else {
+        table.style.display = 'table';
+        noDataMessage.style.display = 'none';
+
+        filteredRequests.forEach(request => {
         const row = document.createElement('tr');
         
         const statusClass = `status-${request.status}`;
@@ -161,8 +246,8 @@ function renderLeaveRequests() {
                 <td>
                     ${request.status === 'pending' ? `
                         <div class="action-buttons">
-                            <button class="btn btn-success btn-sm" onclick="reviewLeave(${request.id}, 'approve')">✅ Approve</button>
-                            <button class="btn btn-danger btn-sm" onclick="reviewLeave(${request.id}, 'reject')">❌ Reject</button>
+                            <button class="btn btn-success btn-sm btn-no-arrow" onclick="reviewLeave(${request.id}, 'approve')">Approve</button>
+                            <button class="btn btn-danger btn-sm btn-no-arrow" onclick="reviewLeave(${request.id}, 'reject')">Reject</button>
                         </div>
                     ` : `
                         <span style="color: var(--text-secondary); font-size: 12px; font-weight: 600;">
@@ -241,6 +326,7 @@ async function handleLeaveSubmission(e) {
                 document.getElementById('leaveModal').style.display = 'none';
                 resetLeaveForm();
                 loadLeaveRequests();
+                clearFilters();
             }, 1500);
         } else {
             showFormError(data.error || 'Failed to submit leave request');
@@ -279,6 +365,8 @@ async function reviewLeave(requestId, action) {
         if (response.ok && data.success) {
             alert(`Leave request ${action}ed successfully!`);
             loadLeaveRequests();
+            // Clear filters after action
+            clearFilters();
         } else {
             alert(data.error || 'Failed to update leave request');
         }
